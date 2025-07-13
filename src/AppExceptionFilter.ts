@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { ValidationError } from '@nestjs/class-validator';
 import { Response } from 'express';
-import { ErrorModel } from './models/response/Error.model';
 
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -20,7 +19,7 @@ export class AppExceptionFilter implements ExceptionFilter {
         if (exception instanceof BadRequestException) {
             const res = exception.getResponse();
 
-            const transformedError: ErrorModel = {
+            const transformedError = {
                 status: HttpStatus.BAD_REQUEST,
                 message:
                     typeof res === 'object' &&
@@ -46,7 +45,7 @@ export class AppExceptionFilter implements ExceptionFilter {
             return;
         }
 
-        const transformedError: ErrorModel = {
+        const transformedError = {
             status:
                 exception.code ||
                 HttpStatus.INTERNAL_SERVER_ERROR,

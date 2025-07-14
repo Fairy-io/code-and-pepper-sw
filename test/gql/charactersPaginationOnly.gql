@@ -1,0 +1,9 @@
+query ($page: Int!, $perPage: Int!) {
+    characters(
+        paginate: { page: $page, perPage: $perPage }
+    ) {
+        page
+        perPage
+        maxPages
+    }
+}

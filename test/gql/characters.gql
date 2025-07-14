@@ -1,0 +1,14 @@
+query ($page: Int!, $perPage: Int!) {
+    characters(
+        paginate: { page: $page, perPage: $perPage }
+    ) {
+        entries {
+            id
+            name
+            episodes
+        }
+        page
+        perPage
+        maxPages
+    }
+}

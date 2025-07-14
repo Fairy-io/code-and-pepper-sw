@@ -1,0 +1,25 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Character {
+  id: String!
+  name: String!
+  episodes: [String!]!
+}
+
+type CharactersList {
+  entries: [Character!]!
+  page: Int!
+  maxPages: Int!
+  perPage: Int!
+}
+
+type Query {
+  characters(paginate: PaginateDto!): CharactersList!
+}
+
+input PaginateDto {
+  page: Int!
+  perPage: Int!
+}

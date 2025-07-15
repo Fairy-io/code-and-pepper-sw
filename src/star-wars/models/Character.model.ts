@@ -4,16 +4,23 @@ import {
     ObjectType,
 } from '@nestjs/graphql';
 import { Paginated } from './Paginated.model';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 @ObjectType()
 export class Character {
     @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
     id: string;
 
     @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
     name: string;
 
     @Field(() => [String])
+    @IsString({ each: true })
+    @IsNotEmpty()
     episodes: string[];
 }
 

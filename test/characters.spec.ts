@@ -1,9 +1,11 @@
 import {
     afterAll,
+    afterEach,
     beforeAll,
     describe,
     expect,
     it,
+    mock,
 } from 'bun:test';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -13,15 +15,34 @@ import TestAgent from 'supertest/lib/agent';
 
 import charactersQuery from './gql/characters.gql';
 import charactersPaginationOnlyQuery from './gql/charactersPaginationOnly.gql';
+import {
+    Mocked,
+    mockObject,
+} from './helpers/mockObjectFunctions';
+import { CharactersService } from '../src/star-wars/characters.service';
 
 describe('characters query', () => {
     let app: INestApplication;
     let request: TestAgent;
+    let charactersService: Mocked<CharactersService>;
 
     beforeAll(async () => {
+        charactersService = mockObject(
+            new CharactersService(),
+            mock,
+        );
+
+        charactersService.getCharacters.mockResolvedValue({
+            entries: [],
+            maxPages: 1,
+        });
+
         const appModule = await Test.createTestingModule({
             imports: [AppModule],
-        }).compile();
+        })
+            .overrideProvider(CharactersService)
+            .useValue(charactersService)
+            .compile();
 
         app = appModule.createNestApplication();
         await app.init();
@@ -31,6 +52,10 @@ describe('characters query', () => {
 
     afterAll(async () => {
         await app.close();
+    });
+
+    afterEach(() => {
+        charactersService.getCharacters.mockReset();
     });
 
     it('returns empty array if no characters are found', async () => {
@@ -44,10 +69,12 @@ describe('characters query', () => {
 
         expect(response.body.data.characters).toEqual({
             entries: [],
-            page: 1,
-            perPage: 10,
             maxPages: 1,
         });
+
+        expect(
+            charactersService.getCharacters,
+        ).toHaveBeenCalledWith(1, 10);
     });
 
     it('returns the same page and per page which passed in the query', async () => {
@@ -64,5 +91,9 @@ describe('characters query', () => {
 
         expect(page).toBe(2);
         expect(perPage).toBe(20);
+
+        expect(
+            charactersService.getCharacters,
+        ).toHaveBeenCalledWith(2, 20);
     });
 });

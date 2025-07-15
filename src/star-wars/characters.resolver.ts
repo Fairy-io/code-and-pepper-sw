@@ -1,20 +1,40 @@
-import { Args, Query, Resolver } from '@nestjs/graphql';
-import { CharactersList } from './models/Character.model';
+import {
+    Args,
+    createUnionType,
+    Query,
+    Resolver,
+} from '@nestjs/graphql';
+import {
+    CharactersList,
+    CharactersListResponse,
+} from './models/Character.model';
 import { PaginateDto } from './dto/Paginate.dto';
+import { CharactersService } from './characters.service';
+import { plainToInstance } from 'class-transformer';
 
 @Resolver()
 export class CharactersResolver {
-    @Query(() => CharactersList)
+    constructor(
+        private readonly charactersService: CharactersService,
+    ) {}
+
+    @Query(() => CharactersListResponse)
     async characters(
-        @Args('paginate') paginate: PaginateDto,
+        @Args('paginate', { type: () => PaginateDto })
+        paginate: PaginateDto,
     ): Promise<CharactersList> {
         const { page, perPage } = paginate;
 
-        return {
-            entries: [],
+        const characters =
+            await this.charactersService.getCharacters(
+                page,
+                perPage,
+            );
+
+        return plainToInstance(CharactersList, {
+            ...characters,
             page,
             perPage,
-            maxPages: 1,
-        };
+        });
     }
 }

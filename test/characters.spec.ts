@@ -9,17 +9,30 @@ import {
 } from 'bun:test';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
+import { AppModule, configModule } from '../src/app.module';
 import supertest from 'supertest';
 import TestAgent from 'supertest/lib/agent';
-
-import charactersQuery from './gql/characters.gql';
+import { CharactersService } from '../src/star-wars/characters.service';
+import { ConfigModule } from '@nestjs/config';
 import charactersPaginationOnlyQuery from './gql/charactersPaginationOnly.gql';
 import {
     Mocked,
     mockObject,
 } from './helpers/mockObjectFunctions';
-import { CharactersService } from '../src/star-wars/characters.service';
+import { createConfiguration } from '../src/config';
+
+import charactersQuery from './gql/characters.gql';
+import { plainToClass } from 'class-transformer';
+
+const testConfiguration = createConfiguration({
+    app: { port: '3001' },
+    service: {
+        name: 'test',
+        version: '1.0.0',
+        description: 'test',
+        env: 'test',
+    },
+});
 
 describe('characters query', () => {
     let app: INestApplication;
@@ -28,7 +41,7 @@ describe('characters query', () => {
 
     beforeAll(async () => {
         charactersService = mockObject(
-            new CharactersService(),
+            plainToClass(CharactersService, {}),
             mock,
         );
 
@@ -37,6 +50,15 @@ describe('characters query', () => {
         })
             .overrideProvider(CharactersService)
             .useValue(charactersService)
+            .overrideProvider('FIRESTORE')
+            .useValue(null) // in test we should not use firestore
+            .overrideModule(configModule)
+            .useModule(
+                ConfigModule.forRoot({
+                    isGlobal: true,
+                    load: [testConfiguration],
+                }),
+            )
             .compile();
 
         app = appModule.createNestApplication();

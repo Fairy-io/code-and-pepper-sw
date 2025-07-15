@@ -8,15 +8,17 @@ type Character {
   episodes: [String!]!
 }
 
+type Query {
+  characters(paginate: PaginateDto!): CharactersListResponse!
+}
+
+union CharactersListResponse = CharactersList
+
 type CharactersList {
   entries: [Character!]!
   page: Int!
   maxPages: Int!
   perPage: Int!
-}
-
-type Query {
-  characters(paginate: PaginateDto!): CharactersList!
 }
 
 input PaginateDto {

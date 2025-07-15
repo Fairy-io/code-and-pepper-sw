@@ -2,13 +2,13 @@ query ($page: Int!, $perPage: Int!) {
     characters(
         paginate: { page: $page, perPage: $perPage }
     ) {
-        entries {
-            id
-            name
-            episodes
+        ... on CharactersList {
+            entries {
+                id
+                name
+                episodes
+            }
+            maxPages
         }
-        page
-        perPage
-        maxPages
     }
 }

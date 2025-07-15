@@ -1,4 +1,8 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import {
+    createUnionType,
+    Field,
+    ObjectType,
+} from '@nestjs/graphql';
 import { Paginated } from './Paginated.model';
 
 @ObjectType()
@@ -15,3 +19,13 @@ export class Character {
 
 @ObjectType()
 export class CharactersList extends Paginated(Character) {}
+
+export const CharactersListResponse = createUnionType({
+    name: 'CharactersListResponse',
+    types: () => [CharactersList],
+});
+
+export const CharacterResponse = createUnionType({
+    name: 'CharacterResponse',
+    types: () => [Character],
+});

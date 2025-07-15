@@ -25,6 +25,7 @@ interface MockFunction<
         value: PromiseOnly<TResult>,
     ): void;
     mockReset(): void;
+    mockClear(): void;
     mockRestore(): void;
 }
 

@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { CharactersList } from './models/Character.model';
+import { Character } from './models/Character.model';
 
 @Injectable()
 export class CharactersService {
-    async getCharacters(
-        page: number,
-        perPage: number,
-    ): Promise<Omit<CharactersList, 'page' | 'perPage'>> {
+    async getCharacters({
+        offset,
+        limit,
+    }: {
+        offset: number;
+        limit: number;
+    }): Promise<{
+        entries: Character[];
+        count: number;
+    }> {
         throw new Error('Not implemented');
     }
 }

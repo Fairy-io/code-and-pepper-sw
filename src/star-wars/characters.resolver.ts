@@ -25,16 +25,19 @@ export class CharactersResolver {
     ): Promise<CharactersList> {
         const { page, perPage } = paginate;
 
-        const characters =
-            await this.charactersService.getCharacters(
-                page,
-                perPage,
-            );
+        const { entries, count } =
+            await this.charactersService.getCharacters({
+                offset: (page - 1) * perPage,
+                limit: perPage,
+            });
+
+        const maxPages = Math.ceil(count / perPage);
 
         return plainToInstance(CharactersList, {
-            ...characters,
+            entries,
             page,
             perPage,
-        });
+            maxPages,
+        } satisfies CharactersList);
     }
 }

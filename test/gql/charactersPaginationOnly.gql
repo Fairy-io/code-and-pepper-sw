@@ -5,6 +5,7 @@ query ($page: Int!, $perPage: Int!) {
         ... on CharactersList {
             page
             perPage
+            maxPages
         }
     }
 }

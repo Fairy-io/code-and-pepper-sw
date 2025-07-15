@@ -3,7 +3,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { Config } from './config';
-import { AppExceptionFilter } from './AppExceptionFilter';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -16,8 +15,6 @@ async function bootstrap() {
             forbidUnknownValues: true,
         }),
     );
-
-    app.useGlobalFilters(new AppExceptionFilter());
 
     const configService =
         app.get<ConfigService<Config>>(ConfigService);

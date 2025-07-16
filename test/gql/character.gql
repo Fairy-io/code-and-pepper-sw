@@ -1,0 +1,13 @@
+query ($id: String!) {
+    character(id: $id) {
+        ... on Character {
+            id
+            name
+            episodes
+        }
+
+        ... on CharacterNotFoundError {
+            code
+        }
+    }
+}

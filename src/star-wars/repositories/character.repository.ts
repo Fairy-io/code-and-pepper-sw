@@ -70,6 +70,10 @@ export class CharacterRepository {
 
         const doc = await collection.doc(id).get();
 
+        if (!doc.exists) {
+            return null;
+        }
+
         return { id, ...doc.data() };
     }
 

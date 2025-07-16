@@ -99,6 +99,53 @@ To switch to a different data source:
 
 The repository pattern ensures that changing the data source doesn't affect the business logic in services or resolvers.
 
+## Architectural Decisions
+
+### Separate Resolvers Pattern
+
+I implemented separate resolvers for each operation ([CharacterResolver](src/star-wars/character.resolver.ts), [CharactersResolver](src/star-wars/characters.resolver.ts), [CreateCharacterResolver](src/star-wars/createCharacter.resolver.ts), [UpdateCharacterResolver](src/star-wars/updateCharacter.resolver.ts), [DeleteCharacterResolver](src/star-wars/updateCharacter.resolver.ts)) instead of a single large resolver class.
+
+**Why this approach?** Keeping classes and files as small as possible helps with:
+
+- **Navigation**: Easier to find specific functionality
+- **Maintainability**: Changes are isolated to specific files
+- **Readability**: Each resolver has a single responsibility
+- **Testing**: Smaller units are easier to test and mock
+- **Team Development**: Multiple developers can work on different resolvers without conflicts
+
+### GraphQL Union Error Handling
+
+I implemented a specific error handling pattern using GraphQL unions instead of throwing traditional errors.
+
+**Why this approach?** Instead of throwing `new Error('character already exists')` which would appear in the GraphQL `errors: []` array, I return specific error types like `CharacterAlreadyExistsError` with structured data.
+
+**Benefits:**
+
+- **Client-Friendly**: Clients can easily check for specific error types and handle them appropriately
+- **Structured Data**: Error responses include specific fields (currently `code`, but extensible for future metadata)
+- **Type Safety**: GraphQL schema provides type-safe error handling
+- **Better UX**: Clients can show user-friendly messages based on error types
+- **Extensibility**: Easy to add more error metadata (timestamps, suggestions, etc.) in the future
+
+**Example:**
+
+```graphql
+# Instead of generic error in errors array
+{
+  "errors": [{"message": "character already exists"}]
+}
+
+# Client gets structured, typed error response
+{
+  "data": {
+    "createCharacter": {
+      "__typename": "CharacterAlreadyExistsError",
+      "code": "CHARACTER_ALREADY_EXISTS"
+    }
+  }
+}
+```
+
 ## Testing Patterns
 
 ### What I Test

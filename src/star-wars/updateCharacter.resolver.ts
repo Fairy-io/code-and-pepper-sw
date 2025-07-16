@@ -15,10 +15,21 @@ export class UpdateCharacterResolver {
         private readonly charactersService: CharactersService,
     ) {}
 
-    @Mutation(() => CharacterResponse)
+    @Mutation(() => CharacterResponse, {
+        description:
+            'Update an existing Star Wars character with new information',
+    })
     async updateCharacter(
-        @Args('id') id: string,
-        @Args('character') character: CharacterDto,
+        @Args('id', {
+            description:
+                'Unique identifier of the character to update',
+        })
+        id: string,
+        @Args('character', {
+            description:
+                'Updated character data including name and episodes',
+        })
+        character: CharacterDto,
     ): Promise<Character | CharacterNotFoundError> {
         try {
             const updatedCharacter =

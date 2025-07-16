@@ -9,9 +9,16 @@ export class DeleteCharacterResolver {
         private readonly charactersService: CharactersService,
     ) {}
 
-    @Mutation(() => Void)
+    @Mutation(() => Void, {
+        description:
+            'Delete a Star Wars character by their unique ID',
+    })
     async deleteCharacter(
-        @Args('id') id: string,
+        @Args('id', {
+            description:
+                'Unique identifier of the character to delete',
+        })
+        id: string,
     ): Promise<Void> {
         await this.charactersService.deleteCharacter(id);
 

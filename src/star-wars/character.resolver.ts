@@ -13,9 +13,16 @@ export class CharacterResolver {
         private readonly charactersService: CharactersService,
     ) {}
 
-    @Query(() => CharacterResponse)
+    @Query(() => CharacterResponse, {
+        description:
+            'Retrieve a single Star Wars character by their unique ID',
+    })
     async character(
-        @Args('id') id: string,
+        @Args('id', {
+            description:
+                'Unique identifier of the character to retrieve',
+        })
+        id: string,
     ): Promise<Character | CharacterNotFoundError> {
         const character =
             await this.charactersService.getCharacterById(

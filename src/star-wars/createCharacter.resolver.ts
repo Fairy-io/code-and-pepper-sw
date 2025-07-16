@@ -14,9 +14,16 @@ export class CreateCharacterResolver {
         private readonly charactersService: CharactersService,
     ) {}
 
-    @Mutation(() => CharacterResponse)
+    @Mutation(() => CharacterResponse, {
+        description:
+            'Create a new Star Wars character with the provided information',
+    })
     async createCharacter(
-        @Args('character') character: CharacterDto,
+        @Args('character', {
+            description:
+                'Character data including name and episodes',
+        })
+        character: CharacterDto,
     ): Promise<Character | CharacterAlreadyExistsError> {
         try {
             const createdCharacter =

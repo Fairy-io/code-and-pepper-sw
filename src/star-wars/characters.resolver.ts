@@ -13,9 +13,16 @@ export class CharactersResolver {
         private readonly charactersService: CharactersService,
     ) {}
 
-    @Query(() => CharactersListResponse)
+    @Query(() => CharactersListResponse, {
+        description:
+            'Retrieve a paginated list of all Star Wars characters',
+    })
     async characters(
-        @Args('paginate', { type: () => PaginateDto })
+        @Args('paginate', {
+            type: () => PaginateDto,
+            description:
+                'Pagination parameters for the character list',
+        })
         paginate: PaginateDto,
     ): Promise<CharactersList> {
         const { page, perPage } = paginate;

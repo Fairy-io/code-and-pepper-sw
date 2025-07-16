@@ -2,52 +2,120 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""
+A Star Wars character with their basic information and episode appearances
+"""
 type Character {
+  """Unique identifier for the character"""
   id: String!
+
+  """The name of the character"""
   name: String!
+
+  """List of Star Wars episodes where this character appears"""
   episodes: [String!]!
 }
 
+"""
+Generic response type for operations that don't return specific data (e.g., delete operations)
+"""
 type Void {
+  """Indicates whether the operation was successful"""
   success: Boolean!
 }
 
 type Query {
-  characters(paginate: PaginateDto!): CharactersListResponse!
-  character(id: String!): CharacterResponse!
+  """Retrieve a paginated list of all Star Wars characters"""
+  characters(
+    """Pagination parameters for the character list"""
+    paginate: PaginateDto!
+  ): CharactersListResponse!
+
+  """Retrieve a single Star Wars character by their unique ID"""
+  character(
+    """Unique identifier of the character to retrieve"""
+    id: String!
+  ): CharacterResponse!
 }
 
+"""
+Union type for characters list query responses containing either a list of characters or an error
+"""
 union CharactersListResponse = CharactersList
 
+"""Paginated list of Star Wars characters with pagination metadata"""
 type CharactersList {
+  """Array of Character items for the current page"""
   entries: [Character!]!
+
+  """Current page number"""
   page: Int!
+
+  """Total number of pages available"""
   maxPages: Int!
+
+  """Number of items per page"""
   perPage: Int!
 }
 
+"""Pagination parameters for retrieving paginated lists"""
 input PaginateDto {
+  """The page number to retrieve (starts from 1)"""
   page: Int!
+
+  """Number of items per page (minimum 1)"""
   perPage: Int!
 }
 
+"""
+Union type for character query responses - can be a character or an error
+"""
 union CharacterResponse = Character | CharacterAlreadyExistsError | CharacterNotFoundError
 
+"""
+Error returned when attempting to create a character that already exists
+"""
 type CharacterAlreadyExistsError {
+  """Error code indicating the character already exists"""
   code: String!
 }
 
+"""Error returned when a requested character is not found"""
 type CharacterNotFoundError {
+  """Error code indicating the character was not found"""
   code: String!
 }
 
 type Mutation {
-  createCharacter(character: CharacterDto!): CharacterResponse!
-  deleteCharacter(id: String!): Void!
-  updateCharacter(id: String!, character: CharacterDto!): CharacterResponse!
+  """Create a new Star Wars character with the provided information"""
+  createCharacter(
+    """Character data including name and episodes"""
+    character: CharacterDto!
+  ): CharacterResponse!
+
+  """Delete a Star Wars character by their unique ID"""
+  deleteCharacter(
+    """Unique identifier of the character to delete"""
+    id: String!
+  ): Void!
+
+  """Update an existing Star Wars character with new information"""
+  updateCharacter(
+    """Unique identifier of the character to update"""
+    id: String!
+
+    """Updated character data including name and episodes"""
+    character: CharacterDto!
+  ): CharacterResponse!
 }
 
+"""Input data for creating or updating a Star Wars character"""
 input CharacterDto {
+  """The name of the character (e.g., "Luke Skywalker", "Darth Vader")"""
   name: String!
+
+  """
+  List of Star Wars episodes where this character appears (e.g., ["A New Hope", "The Empire Strikes Back"])
+  """
   episodes: [String!]!
 }

@@ -13,6 +13,7 @@ export class CharacterRepository {
     ): Promise<any[]> {
         const collection =
             this.collections.getCharactersCollection();
+
         const { docs } = await collection
             .limit(limit)
             .offset(offset)
@@ -27,9 +28,39 @@ export class CharacterRepository {
     async count(): Promise<number> {
         const collection =
             this.collections.getCharactersCollection();
-        const { count } = (
-            await collection.count().get()
-        ).data();
+
+        const countDoc = await collection.count().get();
+
+        const { count } = countDoc.data();
+
+        return count;
+    }
+
+    async create(characterData: any): Promise<any> {
+        const collection =
+            this.collections.getCharactersCollection();
+
+        const docRef = await collection.add({
+            ...characterData,
+        });
+
+        return {
+            id: docRef.id,
+            ...characterData,
+        };
+    }
+
+    async countByName(name: string): Promise<number> {
+        const collection =
+            this.collections.getCharactersCollection();
+
+        const countDoc = await collection
+            .where('name', '==', name)
+            .count()
+            .get();
+
+        const { count } = countDoc.data();
+
         return count;
     }
 }

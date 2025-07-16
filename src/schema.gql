@@ -25,3 +25,18 @@ input PaginateDto {
   page: Int!
   perPage: Int!
 }
+
+type Mutation {
+  createCharacter(character: CharacterDto!): CharacterResponse!
+}
+
+union CharacterResponse = Character | CharacterAlreadyExistsError
+
+type CharacterAlreadyExistsError {
+  code: String!
+}
+
+input CharacterDto {
+  name: String!
+  episodes: [String!]!
+}

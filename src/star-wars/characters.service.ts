@@ -3,6 +3,7 @@ import { Character } from './models/Character.model';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { CharacterRepository } from './repositories/character.repository';
+import { CharacterDto } from './dto/Character.dto';
 
 @Injectable()
 export class CharactersService {
@@ -43,5 +44,34 @@ export class CharactersService {
             entries,
             count: totalCount,
         };
+    }
+
+    async createCharacter(
+        characterData: CharacterDto,
+    ): Promise<Character> {
+        const count =
+            await this.characterRepository.countByName(
+                characterData.name,
+            );
+
+        if (count > 0) {
+            const error = new Error();
+            error.name = 'CHARACTER_ALREADY_EXISTS';
+            throw error;
+        }
+
+        const result =
+            await this.characterRepository.create(
+                characterData,
+            );
+
+        const character = plainToInstance(
+            Character,
+            result,
+        );
+
+        await validateOrReject(character);
+
+        return character;
     }
 }

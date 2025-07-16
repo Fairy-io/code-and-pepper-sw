@@ -6,7 +6,7 @@ This is a recruitment task for Code And Pepper company, developed by Adrian Lary
 
 ## Deployed Application
 
-You can see the deployed application here: [Application Link - Coming Soon]
+You can see the deployed application here: https://code-and-pepper-sw-dev.magicfe.net/graphql
 
 ## Technology Choices
 

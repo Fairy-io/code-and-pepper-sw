@@ -5,34 +5,16 @@ import {
     describe,
     expect,
     it,
-    mock,
 } from 'bun:test';
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { AppModule, configModule } from '../src/app.module';
 import supertest from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 import { CharactersService } from '../src/star-wars/characters.service';
-import { ConfigModule } from '@nestjs/config';
 import charactersPaginationOnlyQuery from './gql/charactersPaginationOnly.gql';
-import {
-    Mocked,
-    mockObject,
-} from './helpers/mockObjectFunctions';
-import { createConfiguration } from '../src/config';
-
+import { Mocked } from './helpers/mockObject';
 import charactersQuery from './gql/characters.gql';
-import { plainToClass } from 'class-transformer';
-
-const testConfiguration = createConfiguration({
-    app: { port: '3001' },
-    service: {
-        name: 'test',
-        version: '1.0.0',
-        description: 'test',
-        env: 'test',
-    },
-});
+import { createTestAppModule } from './helpers/createTestApp';
+import { mockCharactersService } from './helpers/mockCharactersService';
 
 describe('characters query', () => {
     let app: INestApplication;
@@ -40,29 +22,9 @@ describe('characters query', () => {
     let charactersService: Mocked<CharactersService>;
 
     beforeAll(async () => {
-        charactersService = mockObject(
-            plainToClass(CharactersService, {}),
-            mock,
-        );
+        charactersService = mockCharactersService();
 
-        const appModule = await Test.createTestingModule({
-            imports: [AppModule],
-        })
-            .overrideProvider(CharactersService)
-            .useValue(charactersService)
-            .overrideProvider('FIRESTORE')
-            .useValue(null) // in test we should not use firestore
-            .overrideModule(configModule)
-            .useModule(
-                ConfigModule.forRoot({
-                    isGlobal: true,
-                    load: [testConfiguration],
-                }),
-            )
-            .compile();
-
-        app = appModule.createNestApplication();
-        await app.init();
+        app = await createTestAppModule(charactersService);
 
         request = supertest(app.getHttpServer());
     });
@@ -185,5 +147,77 @@ describe('characters query', () => {
             offset: 20,
             limit: 20,
         });
+    });
+
+    it('returns error if page is not provided', async () => {
+        const response = await request
+            .post('/graphql')
+            .send({
+                query: charactersQuery,
+                variables: { perPage: 10 },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it('returns error if perPage is not provided', async () => {
+        const response = await request
+            .post('/graphql')
+            .send({
+                query: charactersQuery,
+                variables: { page: 1 },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it('returns error if page is not a number', async () => {
+        const response = await request
+            .post('/graphql')
+            .send({
+                query: charactersQuery,
+                variables: { page: '1', perPage: 10 },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it('returns error if perPage is not a number', async () => {
+        const response = await request
+            .post('/graphql')
+            .send({
+                query: charactersQuery,
+                variables: { page: 1, perPage: '10' },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it('returns error if page is less than 1', async () => {
+        const response = await request
+            .post('/graphql')
+            .send({
+                query: charactersQuery,
+                variables: { page: 0, perPage: 10 },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeDefined();
+    });
+
+    it('returns error if perPage is less than 1', async () => {
+        const response = await request
+            .post('/graphql')
+            .send({
+                query: charactersQuery,
+                variables: { page: 1, perPage: 0 },
+            })
+            .expect(200);
+
+        expect(response.body.errors).toBeDefined();
     });
 });

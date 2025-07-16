@@ -1,0 +1,24 @@
+mutation (
+    $id: String!
+    $name: String!
+    $episodes: [String!]!
+) {
+    updateCharacter(
+        id: $id
+        character: { episodes: $episodes, name: $name }
+    ) {
+        ... on Character {
+            id
+            name
+            episodes
+        }
+
+        ... on CharacterAlreadyExistsError {
+            code
+        }
+
+        ... on CharacterNotFoundError {
+            code
+        }
+    }
+}

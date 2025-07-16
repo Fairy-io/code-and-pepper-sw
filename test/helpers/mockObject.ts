@@ -24,6 +24,8 @@ interface MockFunction<
     mockResolvedValueOnce(
         value: PromiseOnly<TResult>,
     ): void;
+    mockRejectedValue(value: any): void;
+    mockRejectedValueOnce(value: any): void;
     mockReset(): void;
     mockClear(): void;
     mockRestore(): void;

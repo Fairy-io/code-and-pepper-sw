@@ -1,0 +1,15 @@
+mutation ($name: String!, $episodes: [String!]!) {
+    createCharacter(
+        character: { name: $name, episodes: $episodes }
+    ) {
+        ... on Character {
+            id
+            name
+            episodes
+        }
+
+        ... on CharacterAlreadyExistsError {
+            code
+        }
+    }
+}

@@ -1,36 +1,59 @@
-FROM node:22-alpine AS prod_dependencies
+## Stage 1: Install prod dependencies
+FROM oven/bun:1.2.3 as prod_dependencies
+
+WORKDIR /app
+COPY package.json .
+COPY bun.lock .
+RUN ["bun", "install", "--production"]
+
+## Stage 2: Install dev dependencies
+FROM prod_dependencies as dev_dependencies
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+RUN ["bun", "install"]
 
-RUN npm ci --only=production
-
-# ----
-
-FROM prod_dependencies as builder
+## Stage 3: Build the application
+FROM dev_dependencies as builder
 
 WORKDIR /app
 
-RUN npm ci
-
-COPY tsconfig.json tsconfig.json
-COPY tsconfig.docker.json tsconfig.build.json
 COPY src src
+COPY bunfig.toml bunfig.toml
+COPY preload.ts preload.ts
+COPY tsconfig.json tsconfig.json
+COPY tsconfig.build.json tsconfig.build.json
 
-RUN npm run build
+RUN ["bun", "run", "build"]
 
-# ----
+# ------
 
-FROM prod_dependencies
+## Stage 4: Copy the built application to production dependencies
+FROM prod_dependencies as prod
 
 WORKDIR /app
 
 COPY --from=builder /app/dist ./dist
-COPY package.json ./
+COPY --from=builder /app/src/schema.gql ./dist/src/schema.gql
 
-ENV NODE_ENV=production
+CMD [ "bun", "start" ]
 
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+# ------
+
+## Stage 5: Create deploy utils
+FROM dev_dependencies
+
+WORKDIR /app
+
+COPY bunfig.toml bunfig.toml
+COPY preload.ts preload.ts
+COPY tsconfig.json tsconfig.json
+COPY tsconfig.build.json tsconfig.build.json
+COPY src src
+COPY scripts scripts
+COPY test test
+COPY test_e2e test_e2e
+
+CMD ["sleep", "infinity"]

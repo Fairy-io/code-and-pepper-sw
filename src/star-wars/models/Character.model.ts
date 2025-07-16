@@ -35,6 +35,14 @@ export class CharacterAlreadyExistsError {
     code: string;
 }
 
+@ObjectType()
+export class CharacterNotFoundError {
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    code: string;
+}
+
 export const CharactersListResponse = createUnionType({
     name: 'CharactersListResponse',
     types: () => [CharactersList],
@@ -42,5 +50,9 @@ export const CharactersListResponse = createUnionType({
 
 export const CharacterResponse = createUnionType({
     name: 'CharacterResponse',
-    types: () => [Character, CharacterAlreadyExistsError],
+    types: () => [
+        Character,
+        CharacterAlreadyExistsError,
+        CharacterNotFoundError,
+    ],
 });

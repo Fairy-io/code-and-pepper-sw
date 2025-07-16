@@ -289,3 +289,44 @@ const postgresUrl = await getSecret(secretName, '123');
 - `starwars-api` in `prod`: fetches `starwars-api-prod-postgres-url`
 
 This approach provides **environment-specific secret management** with consistent naming conventions.
+
+## Potential Improvements
+
+### Infrastructure Enhancements
+
+- **Add logging** for production monitoring and debugging
+- **Add e2e tests** for comprehensive system validation
+
+### Database Architecture Evolution
+
+**Switch to multi-database approach or different database technology**
+
+Currently, I use a single default Firestore instance as the data source for cost efficiency and rapid development. However, for a production microservices architecture, this approach has limitations:
+
+- **Fault Tolerance**: Single database creates a single point of failure
+- **Scalability**: Shared database can become a bottleneck
+- **Data Isolation**: Different services should have isolated data stores
+
+**Recommended approach:**
+
+- **Per-service databases**: Each microservice should have its own database
+- **Technology selection**: PostgreSQL might be more suitable for larger applications with complex relationships
+- **Data consistency**: Implement eventual consistency patterns for cross-service data
+
+### Data Model Enhancements
+
+**Create separated collection for episodes with API support**
+
+Currently, episodes are stored as strings within the character model. For future scalability, consider:
+
+- **Episode entity**: Separate `Episode` model with properties like title, release date, director, etc.
+- **Data loaders**: Implement GraphQL data loaders to efficiently fetch related data
+- **New APIs**: Add episode-specific endpoints for managing episode metadata
+- **Enhanced features**: Support for episode ratings, reviews, and analytics
+
+**Benefits:**
+
+- **Data integrity**: Proper relationships between characters and episodes
+- **Performance**: Efficient querying with data loaders
+- **Extensibility**: Easy to add episode-specific features
+- **Scalability**: Better data organization for growing applications

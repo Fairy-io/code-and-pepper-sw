@@ -6,6 +6,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { ApolloDriverConfig } from '@nestjs/apollo';
 import { StarWarsModule } from './star-wars/starWars.module';
 import { join } from 'path';
+import { InfoModule } from './info/info.module';
 
 export const configModule = ConfigModule.forRoot({
     isGlobal: true,
@@ -15,9 +16,10 @@ export const configModule = ConfigModule.forRoot({
 @Module({
     imports: [
         StarWarsModule,
+        InfoModule,
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            include: [StarWarsModule],
+            include: [StarWarsModule, InfoModule],
             autoSchemaFile: join(
                 process.cwd(),
                 'src/schema.gql',

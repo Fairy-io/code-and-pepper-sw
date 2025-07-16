@@ -24,7 +24,31 @@ type Void {
   success: Boolean!
 }
 
+"""
+Information about the Star Wars API service including name, version, description, and environment
+"""
+type Info {
+  """Human-readable name of the service"""
+  name: String!
+
+  """Version of the service (formatted as "ver. X.X.X")"""
+  version: String!
+
+  """Description of the service and its purpose"""
+  description: String!
+
+  """
+  Environment where the service is running (e.g., development, staging, production)
+  """
+  env: String!
+}
+
 type Query {
+  """
+  Get information about the Star Wars API service including name, version, description, and environment
+  """
+  info: Info!
+
   """Retrieve a paginated list of all Star Wars characters"""
   characters(
     """Pagination parameters for the character list"""

@@ -34,9 +34,19 @@ I chose Bun over npm or yarn for several reasons:
     - `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to your service account JSON file
     - Service account must have Firestore read/write permissions
 
+3. **Environment Variables**:
+    - `PORT` (required) - Server port under which the application is accessible
+    - `SERVICE_ENV` (required) - Service environment (e.g., prod, dev, local) used for service discovery, secrets retrieval, and database access
+    - `SERVICE_NAME` (required) - Service name (e.g., starwars-api) used for service discovery, secrets retrieval, and database access
+    - `SERVICE_VERSION` (required) - Service version for tracking deployed versions
+    - `SERVICE_DESCRIPTION` (required) - Brief description of the service
+
 ### Local Scripts
 
 ```bash
+# Copy environment configuration
+cp .env.example .env
+
 # Install dependencies
 bun install
 
@@ -116,7 +126,7 @@ The repository pattern ensures that changing the data source doesn't affect the 
 
 This approach prevents e2e tests from slowing down the development process while ensuring production deployments are thoroughly validated.
 
-**Mocking utility** - [mockObject](test/helpers/mockObject.ts) is existing mocking utility copied from another project. I decided to use it for easier mocking.
+**Mocking utility** - [mockObject](test/helpers/mockObject.ts) is an existing mocking utility copied from another project. I decided to use it for easier mocking.
 
 ### E2E Tests
 
@@ -130,15 +140,105 @@ I used a deployment strategy that I created for one of my other projects ([Elysi
 
 ### CI/CD
 
-I used [Google Cloud Build](https://cloud.google.com/build) for pipeline execution and [Depot](https://depot.dev) service for image build time reduction. And CI/CD config can be found [here](cloudbuild-depot.yaml).
+I used [Google Cloud Build](https://cloud.google.com/build) for pipeline execution and [Depot](https://depot.dev) service for image build time reduction. The CI/CD configuration can be found [here](cloudbuild-depot.yaml).
 
-It is possible to switch into another CI/CD provider:
+It is possible to switch to another CI/CD provider:
 
-- delete `cloudbuild-depot.yaml` and replace with with other config
-- it may be required to modify [Dockerfile](Dockerfile)
+- Delete `cloudbuild-depot.yaml` and replace it with another configuration
+- It may be required to modify the [Dockerfile](Dockerfile)
 
 ### Reasoning
 
-**Why I chose this strategy?** It was working for me before and it follows [GitOps principles](https://about.gitlab.com/topics/gitops/). Deploy script can be found [here](scripts/deploy/index.ts).
+**Why I chose this strategy?** It was working for me before and it follows [GitOps principles](https://about.gitlab.com/topics/gitops/). The deploy script can be found [here](scripts/deploy/index.ts).
 
 **Why I chose Cloud Run?** It is a serverless solution, ideal for small applications. It uses Docker containers, so in the future it is possible to switch to something more advanced, for example Kubernetes (GKE) or Docker Swarm deployed on VM (Google Compute Engine - GCE).
+
+## System Architecture and Design Decisions
+
+### Minimal Configuration Approach
+
+The system is designed with just **5 environment variables** to maintain simplicity while providing all necessary functionality for a production-ready application.
+
+### Firestore Database Strategy
+
+I implemented a **single Firestore instance** approach using the `default` database. This is a cost-efficient solution designed for simple systems or systems in the MVP stage.
+
+Instead of multiple databases, I follow a **naming convention pattern** for collections:
+
+```typescript
+const name = 'my-collection';
+const collectionName = `${process.env.SERVICE_NAME}-${process.env.SERVICE_ENV}-${name}`;
+```
+
+**Examples:**
+
+- `starwars-api` service deployed in `dev` environment: `starwars-api-dev-characters`
+- `starwars-api` service deployed in `prod` environment: `starwars-api-prod-characters`
+
+This approach provides **environment isolation** while maintaining cost efficiency.
+
+### Service Discovery Pattern
+
+For inter-service communication, I utilize the `SERVICE_NAME` and `SERVICE_ENV` variables to construct service URLs dynamically:
+
+```typescript
+import ky from 'ky';
+
+const suffix =
+    process.env.SERVICE_ENV === 'prod'
+        ? ''
+        : `-${process.env.SERVICE_ENV}`;
+const otherMicroserviceName = 'other-microservice';
+
+await ky.get(
+    `https://${otherMicroserviceName}${suffix}.mydomain.com/something`,
+);
+```
+
+**Examples:**
+
+- `dev` environment: `https://other-microservice-dev.mydomain.com/something`
+- `prod` environment: `https://other-microservice.mydomain.com/something`
+
+This pattern ensures **consistent service discovery** across environments.
+
+### Secrets Management Strategy
+
+For additional secrets (e.g., PostgreSQL connection strings), I would use [Google Secret Manager](https://cloud.google.com/security/products/secret-manager) with the following pattern:
+
+```typescript
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+
+const name = process.env.SERVICE_NAME;
+const env = process.env.SERVICE_ENV;
+const secret = 'postgres-url';
+const secretName = `${name}-${env}-${secret}`;
+
+const client = new SecretManagerServiceClient();
+
+const getSecret = async (
+    key: string,
+    projectId: string,
+) => {
+    const [version] = await client.accessSecretVersion({
+        name: `projects/${projectId}/secrets/${key}/version/latest`,
+    });
+
+    const payload = version.payload?.data?.toString();
+    if (!payload)
+        throw new Error(
+            `Secret ${key} is empty or missing`,
+        );
+
+    return payload;
+};
+
+const postgresUrl = await getSecret(secretName, '123');
+```
+
+**Examples:**
+
+- `starwars-api` in `dev`: fetches `starwars-api-dev-postgres-url`
+- `starwars-api` in `prod`: fetches `starwars-api-prod-postgres-url`
+
+This approach provides **environment-specific secret management** with consistent naming conventions.

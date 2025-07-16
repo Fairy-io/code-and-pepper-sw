@@ -12,6 +12,7 @@ import {
     ValidateNested,
     validateOrReject,
 } from 'class-validator';
+import { validateObject } from '../utils/validateObject';
 
 export class AppConfig {
     @IsNumber()
@@ -57,10 +58,13 @@ const errorToString = (error: any) => `${error}`;
 export const createConfiguration =
     (obj: Record<string, any>) =>
     async (): Promise<Config> => {
-        const config = plainToInstance(Config, obj);
-
         try {
-            await validateOrReject(config);
+            const config = await validateObject(
+                obj,
+                Config,
+            );
+
+            return config;
         } catch (errors) {
             const configErrorMessages =
                 errors.map(errorToString);
@@ -69,8 +73,6 @@ export const createConfiguration =
 
             throw errors;
         }
-
-        return config;
     };
 
 export const configuration = createConfiguration({

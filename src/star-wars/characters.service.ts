@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Character } from './models/Character.model';
-import { plainToInstance } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
 import { CharacterRepository } from './repositories/character.repository';
 import { CharacterDto } from './dto/Character.dto';
+import { validateObject } from '../utils/validateObject';
 
 @Injectable()
 export class CharactersService {
@@ -31,11 +30,11 @@ export class CharactersService {
 
         const entries = await Promise.all(
             rawDocs.map(async (doc) => {
-                const character = plainToInstance(
-                    Character,
+                const character = await validateObject(
                     doc,
+                    Character,
                 );
-                await validateOrReject(character);
+
                 return character;
             }),
         );
@@ -65,12 +64,10 @@ export class CharactersService {
                 characterData,
             );
 
-        const character = plainToInstance(
-            Character,
+        const character = await validateObject(
             result,
+            Character,
         );
-
-        await validateOrReject(character);
 
         return character;
     }
@@ -85,12 +82,10 @@ export class CharactersService {
             return null;
         }
 
-        const character = plainToInstance(
-            Character,
+        const character = await validateObject(
             result,
+            Character,
         );
-
-        await validateOrReject(character);
 
         return character;
     }
@@ -129,12 +124,10 @@ export class CharactersService {
                 characterData,
             );
 
-        const character = plainToInstance(
-            Character,
+        const character = await validateObject(
             result,
+            Character,
         );
-
-        await validateOrReject(character);
 
         return character;
     }

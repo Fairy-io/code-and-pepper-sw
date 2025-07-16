@@ -27,6 +27,14 @@ export class Character {
 @ObjectType()
 export class CharactersList extends Paginated(Character) {}
 
+@ObjectType()
+export class CharacterAlreadyExistsError {
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    code: string;
+}
+
 export const CharactersListResponse = createUnionType({
     name: 'CharactersListResponse',
     types: () => [CharactersList],
@@ -34,5 +42,5 @@ export const CharactersListResponse = createUnionType({
 
 export const CharacterResponse = createUnionType({
     name: 'CharacterResponse',
-    types: () => [Character],
+    types: () => [Character, CharacterAlreadyExistsError],
 });

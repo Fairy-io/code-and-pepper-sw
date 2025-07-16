@@ -8,8 +8,13 @@ type Character {
   episodes: [String!]!
 }
 
+type Void {
+  success: Boolean!
+}
+
 type Query {
   characters(paginate: PaginateDto!): CharactersListResponse!
+  character(id: String!): CharacterResponse!
 }
 
 union CharactersListResponse = CharactersList
@@ -26,14 +31,20 @@ input PaginateDto {
   perPage: Int!
 }
 
-type Mutation {
-  createCharacter(character: CharacterDto!): CharacterResponse!
-}
-
-union CharacterResponse = Character | CharacterAlreadyExistsError
+union CharacterResponse = Character | CharacterAlreadyExistsError | CharacterNotFoundError
 
 type CharacterAlreadyExistsError {
   code: String!
+}
+
+type CharacterNotFoundError {
+  code: String!
+}
+
+type Mutation {
+  createCharacter(character: CharacterDto!): CharacterResponse!
+  deleteCharacter(id: String!): Void!
+  updateCharacter(id: String!, character: CharacterDto!): CharacterResponse!
 }
 
 input CharacterDto {

@@ -1,9 +1,4 @@
-import {
-    Args,
-    createUnionType,
-    Query,
-    Resolver,
-} from '@nestjs/graphql';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 import {
     CharactersList,
     CharactersListResponse,

@@ -63,4 +63,34 @@ export class CharacterRepository {
 
         return count;
     }
+
+    async findById(id: string): Promise<any> {
+        const collection =
+            this.collections.getCharactersCollection();
+
+        const doc = await collection.doc(id).get();
+
+        return { id, ...doc.data() };
+    }
+
+    async delete(id: string): Promise<void> {
+        const collection =
+            this.collections.getCharactersCollection();
+
+        await collection.doc(id).delete();
+    }
+
+    async update(
+        id: string,
+        characterData: any,
+    ): Promise<any> {
+        const collection =
+            this.collections.getCharactersCollection();
+
+        await collection
+            .doc(id)
+            .update({ ...characterData });
+
+        return { id, ...characterData };
+    }
 }

@@ -91,6 +91,61 @@ describe('CharactersService', () => {
         });
     });
 
+    describe('getCharacterById', () => {
+        it('returns a character by id', async () => {
+            const mockCharacter = {
+                id: '1',
+                name: 'Luke Skywalker',
+                episodes: ['IV', 'V', 'VI'],
+            };
+
+            characterRepository.findById.mockResolvedValue(
+                mockCharacter,
+            );
+
+            const result =
+                await charactersService.getCharacterById(
+                    '1',
+                );
+
+            expect(result).toEqual(mockCharacter);
+            expect(
+                characterRepository.findById,
+            ).toHaveBeenCalledWith('1');
+        });
+
+        it('returns null if the character is not found', async () => {
+            characterRepository.findById.mockResolvedValue(
+                null,
+            );
+
+            const result =
+                await charactersService.getCharacterById(
+                    '1',
+                );
+
+            expect(result).toBeNull();
+            expect(
+                characterRepository.findById,
+            ).toHaveBeenCalledWith('1');
+        });
+
+        it('throws error if the character is invalid', async () => {
+            const mockCharacter = {
+                id: '1',
+                name: 'Luke Skywalker',
+            };
+
+            characterRepository.findById.mockResolvedValue(
+                mockCharacter,
+            );
+
+            expect(
+                charactersService.getCharacterById('1'),
+            ).rejects.toThrow();
+        });
+    });
+
     describe('createCharacter', () => {
         it('creates a character', async () => {
             const mockCharacter = {
@@ -176,6 +231,187 @@ describe('CharactersService', () => {
                         'CHARACTER_ALREADY_EXISTS',
                     );
             }
+        });
+    });
+
+    describe('updateCharacter', () => {
+        it('updates a character', async () => {
+            const mockCharacter = {
+                id: '1',
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI', 'VII'],
+            };
+
+            characterRepository.update.mockResolvedValue(
+                mockCharacter,
+            );
+
+            characterRepository.countByName.mockResolvedValue(
+                0,
+            );
+
+            characterRepository.findById.mockResolvedValue({
+                id: '1',
+                name: 'Luke Skywalker',
+                episodes: ['IV', 'V', 'VI'],
+            });
+
+            const result =
+                await charactersService.updateCharacter(
+                    '1',
+                    {
+                        name: 'Leia Organa',
+                        episodes: ['IV', 'V', 'VI', 'VII'],
+                    },
+                );
+
+            expect(result).toEqual(mockCharacter);
+            expect(
+                characterRepository.update,
+            ).toHaveBeenCalledWith('1', {
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI', 'VII'],
+            });
+            expect(
+                characterRepository.countByName,
+            ).toHaveBeenCalledWith('Leia Organa');
+            expect(
+                characterRepository.findById,
+            ).toHaveBeenCalledWith('1');
+        });
+
+        it('updates a character with the same name', async () => {
+            const mockCharacter = {
+                id: '1',
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI', 'VII'],
+            };
+
+            characterRepository.update.mockResolvedValue(
+                mockCharacter,
+            );
+
+            characterRepository.countByName.mockResolvedValue(
+                1,
+            );
+
+            characterRepository.findById.mockResolvedValue({
+                id: '1',
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI'],
+            });
+
+            const result =
+                await charactersService.updateCharacter(
+                    '1',
+                    {
+                        name: 'Leia Organa',
+                        episodes: ['IV', 'V', 'VI', 'VII'],
+                    },
+                );
+
+            expect(result).toEqual(mockCharacter);
+            expect(
+                characterRepository.update,
+            ).toHaveBeenCalledWith('1', {
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI', 'VII'],
+            });
+        });
+
+        it('throws an error if character name is not unique', async () => {
+            expect.assertions(1);
+
+            const mockCharacter = {
+                id: '1',
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI', 'VII'],
+            };
+
+            characterRepository.update.mockResolvedValue(
+                mockCharacter,
+            );
+
+            characterRepository.countByName.mockResolvedValue(
+                1,
+            );
+
+            characterRepository.findById.mockResolvedValue({
+                id: '1',
+                name: 'Luke Skywalker',
+                episodes: ['IV', 'V', 'VI'],
+            });
+
+            try {
+                await charactersService.updateCharacter(
+                    '1',
+                    {
+                        name: 'Leia Organa',
+                        episodes: ['IV', 'V', 'VI', 'VII'],
+                    },
+                );
+            } catch (error) {
+                error instanceof Error &&
+                    expect(error.name).toBe(
+                        'CHARACTER_ALREADY_EXISTS',
+                    );
+            }
+        });
+
+        it('throws an error if character is not found', async () => {
+            expect.assertions(1);
+
+            characterRepository.findById.mockResolvedValue(
+                null,
+            );
+
+            try {
+                await charactersService.updateCharacter(
+                    '1',
+                    {
+                        name: 'Leia Organa',
+                        episodes: ['IV', 'V', 'VI', 'VII'],
+                    },
+                );
+            } catch (error) {
+                error instanceof Error &&
+                    expect(error.name).toBe(
+                        'CHARACTER_NOT_FOUND',
+                    );
+            }
+        });
+
+        it('throws an error if character is invalid', async () => {
+            characterRepository.findById.mockResolvedValue({
+                id: '1',
+                name: 'Leia Organa',
+                episodes: ['IV', 'V', 'VI', 'VII'],
+            });
+
+            characterRepository.update.mockResolvedValue({
+                id: '1',
+            });
+
+            characterRepository.countByName.mockResolvedValue(
+                0,
+            );
+
+            expect(
+                charactersService.updateCharacter('1', {
+                    name: 'Leia Organa',
+                    episodes: ['IV', 'V', 'VI', 'VII'],
+                }),
+            ).rejects.toThrow();
+        });
+    });
+
+    describe('deleteCharacter', () => {
+        it('deletes a character', async () => {
+            await charactersService.deleteCharacter('1');
+
+            expect(
+                characterRepository.delete,
+            ).toHaveBeenCalledWith('1');
         });
     });
 });
